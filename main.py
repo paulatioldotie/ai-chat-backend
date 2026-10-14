@@ -1,4 +1,5 @@
 import os
+import logging
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -62,6 +63,19 @@ def chat(request: ChatRequest):
         return ChatResponse(reply=response.output_text)
 
     except Exception:
+        logger = logging.getLogger(__name__)
+
+try:
+    # Your existing AI provider request
+    response = await your_ai_request()
+
+except Exception as e:
+    logger = logging.getLogger(__name__)
+    logger.exception("AI provider request failed: %s", str(e))
+    raise HTTPException(
+        status_code=502,
+        detail="AI provider request failed"
+    )
         raise HTTPException(
             status_code=502,
             detail="AI provider request failed"
