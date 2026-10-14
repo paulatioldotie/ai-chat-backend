@@ -46,6 +46,7 @@ def chat(request: ChatRequest):
             detail="Invalid message role"
         )
 
+    logger = logging.getLogger(__name__)
     try:
         response = client.responses.create(
             model=os.environ.get(
@@ -63,14 +64,13 @@ def chat(request: ChatRequest):
         return ChatResponse(reply=response.output_text)
 
     except Exception:
-        logger = logging.getLogger(__name__)
+        logger.exception("AI provider request failed: %s", str(e))
 
 try:
     # Your existing AI provider request
     response = await your_ai_request()
 
 except Exception as e:
-    logger = logging.getLogger(__name__)
     logger.exception("AI provider request failed: %s", str(e))
     raise HTTPException(
         status_code=502,
