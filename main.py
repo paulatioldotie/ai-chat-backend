@@ -76,7 +76,7 @@ except Exception as e:
         status_code=502,
         detail="AI provider request failed"
     )
-        raise HTTPException(
-            status_code=502,
-            detail="AI provider request failed"
-        )
+    raise HTTPException(
+        status_code=502,
+        detail="AI provider request failed"
+    )
