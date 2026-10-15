@@ -5,6 +5,9 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from openai import OpenAI
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title="AI Chat API")
 
 client = OpenAI(
@@ -27,7 +30,10 @@ class ChatResponse(BaseModel):
 
 @app.get("/")
 def health():
-    return {"status": "ok", "service": "AI Chat API"}
+    return {
+        "status": "ok",
+        "service": "AI Chat API"
+    }
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -38,15 +44,16 @@ def chat(request: ChatRequest):
             detail="AI API key is not configured"
         )
 
-    # Validate incoming roles before forwarding messages.
-    if any(m.role not in ("user", "assistant")
-           for m in request.messages):
+    # Validate message roles.
+    if any(
+        m.role not in ("user", "assistant")
+        for m in request.messages
+    ):
         raise HTTPException(
             status_code=400,
             detail="Invalid message role"
         )
 
-    logger = logging.getLogger(__name__)
     try:
         response = client.responses.create(
             model=os.environ.get(
@@ -61,22 +68,14 @@ def chat(request: ChatRequest):
             ]
         )
 
-        return ChatResponse(reply=response.output_text)
+        return ChatResponse(
+            reply=response.output_text
+        )
 
-    except Exception:
-        logger.exception("AI provider request failed: %s", str(e))
+    except Exception as e:
+        logger.exception("AI provider request failed")
+        raise HTTPException(
+            status_code=502,
+            detail="AI provider request failed"
+        ) from e
 
-try:
-    # Your existing AI provider request
-    response = await your_ai_request()
-
-except Exception as e:
-    logger.exception("AI provider request failed: %s", str(e))
-    raise HTTPException(
-        status_code=502,
-        detail="AI provider request failed"
-    )
-    raise HTTPException(
-        status_code=502,
-        detail="AI provider request failed"
-    )
